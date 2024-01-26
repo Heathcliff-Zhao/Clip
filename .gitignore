@@ -1,0 +1,7 @@
+__pycache__/*
+data/*
+models/*
+models_oldtest/*
+wandb/*
+!models/.gitkeep
+!data/.gitkeep
