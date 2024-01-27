@@ -40,13 +40,13 @@ class AugClipDataset(ClipDataset):
         image_path = self.dataframe.iloc[idx, 0]
         image_path = os.path.join('~/groundingdata/allsuccuess_ori', os.path.basename(image_path))
         bboxes_json_path = image_path.replace('.jpg', '.json').replace('allsuccuess_ori', 'allsuccuess_gt')
-        modify = random.choice([True, False])
-        if modify:
+        disturb = random.choice([True, False])
+        if disturb:
             ret_label = torch.tensor([0, 1])
         else:
             ret_label = torch.tensor([1, 0])
         image = Image.open(image_path).convert("RGB")
         with open(bboxes_json_path, 'r') as f:
-            bboxes = json.load(f)
-        image = prepare_image_with_bbox(image, bboxes, modify, width=3)
-
+            page_structure = json.load(f)
+        image = prepare_image_with_bbox(image, page_structure, disturb, width=3)
+        return self.preprocess(image), ret_label
