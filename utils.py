@@ -45,6 +45,9 @@ def aug_on_image(image, bboxes_info):
     # 15% mask
     mask_ratio = 0.15
     mask_bool_list = [True if random.random() < mask_ratio else False for _ in range(len(image_node))]
+    # at least one image node is masked
+    if not any(mask_bool_list):
+        mask_bool_list[random.randint(0, len(image_node) - 1)] = True
     selected_image_node = [node for node, mask_bool in zip(image_node, mask_bool_list) if mask_bool]
     # white cover on image, when mask_bool_list[i] is True
     image = white_cover(image, selected_image_node)
