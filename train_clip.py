@@ -100,7 +100,7 @@ def train(classifier, train_loader, test_loader, criterion, optimizer, device, t
 
 if __name__ == '__main__':
     train_df = pd.read_csv('./data/train.csv')
-    test_df = pd.read_csv('./data/test.csv')
+    test_df = pd.read_csv('./data/fixtest.csv')
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     classifier, preprocess = clip.load("ViT-B/32", device=device)
