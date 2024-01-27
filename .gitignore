@@ -5,3 +5,4 @@ models_oldtest/*
 wandb/*
 !models/.gitkeep
 !data/.gitkeep
+*.ipynb
