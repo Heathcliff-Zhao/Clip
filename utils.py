@@ -31,7 +31,7 @@ def get_available_gpu():
     gpu_id = gpu_free_mem.index(max(gpu_free_mem))
     return gpu_id
 
-def aug_on_bbox(bboxes_info):
+def disturb_on_bbox(bboxes_info):
     pass
 
 def white_cover(image, bboxes):
@@ -40,7 +40,7 @@ def white_cover(image, bboxes):
         image.paste((255, 255, 255), (node['left'], node['top'], node['left'] + node['width'], node['top'] + node['height']))
     return image
 
-def aug_on_image(image, bboxes_info):
+def disturb_on_image(image, bboxes_info):
     image_node = [node for node in bboxes_info if node.get('tagName', None) == 'img']
     # 15% mask
     mask_ratio = 0.15
@@ -58,10 +58,10 @@ def aug_on_image(image, bboxes_info):
 def prepare_image_with_bbox(image, page_structure, disturb, width=3):
     leaf_node_list = leaf_list(page_structure)
     if disturb:
-        which_aug = random.choice(['bbox', 'image'])
-        if which_aug == 'bbox':
-            aug_on_bbox(leaf_node_list)
+        which_disturb = random.choice(['bbox', 'image'])
+        if which_disturb == 'bbox':
+            disturb_on_bbox(leaf_node_list)
         else:
-            aug_on_image(image, leaf_node_list)
+            disturb_on_image(image, leaf_node_list)
     img_with_bbox = draw_bbox(image, leaf_node_list, width=width)
     return img_with_bbox
