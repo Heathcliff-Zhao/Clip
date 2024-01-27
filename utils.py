@@ -1,5 +1,7 @@
 from PIL import ImageDraw
 import gpustat
+import random
+from copy import deepcopy
 
 
 def leaf_list(element):
@@ -32,7 +34,27 @@ def get_available_gpu():
     return gpu_id
 
 def disturb_on_bbox(bboxes_info):
-    pass
+    # drop, move, add
+    which_disturb = random.choice(['drop', 'move', 'add'])
+    if which_disturb == 'drop':
+        drop_ratio = 0.15
+        drop_bool_list = [True if random.random() < drop_ratio else False for _ in range(len(bboxes_info))]
+        # at least one node is dropped
+        if not any(drop_bool_list):
+            drop_bool_list[random.randint(0, len(bboxes_info) - 1)] = True
+        bboxes_info = [node for node, drop_bool in zip(bboxes_info, drop_bool_list) if not drop_bool]
+    elif which_disturb == 'move':
+        move_ratio = 0.15
+        move_bool_list = [True if random.random() < move_ratio else False for _ in range(len(bboxes_info))]
+        # at least one node is moved
+        if not any(move_bool_list):
+            move_bool_list[random.randint(0, len(bboxes_info) - 1)] = True
+        for node, move_bool in zip(bboxes_info, move_bool_list):
+            if move_bool:
+                node['boxInfo']['left'] += random.randint(-10, 10)
+                node['boxInfo']['top'] += random.randint(-10, 10)
+    else:
+        pass
 
 def white_cover(image, bboxes):
     for node in bboxes:
