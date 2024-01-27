@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import pandas as pd
 # from sklearn.metrics import accuracy_score, recall_score, precision_score
-from dataset import ClipDataset
+from dataset import ClipDataset, DisturbClipDataset
 import wandb
 
 wandb.init(project='clip-website-classification')

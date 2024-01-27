@@ -32,9 +32,9 @@ class ClipDataset(Dataset):
         return self.preprocess(image), ret_label
     
 
-class AugClipDataset(ClipDataset):
+class DisturbClipDataset(ClipDataset):
     def __init__(self, dataframe, preprocess):
-        super(AugClipDataset, self).__init__(dataframe, preprocess)
+        super(DisturbClipDataset, self).__init__(dataframe, preprocess)
 
     def __getitem__(self, idx):
         image_path = self.dataframe.iloc[idx, 0]
