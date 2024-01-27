@@ -6,3 +6,4 @@ wandb/*
 !models/.gitkeep
 !data/.gitkeep
 *.ipynb
+*.sh
