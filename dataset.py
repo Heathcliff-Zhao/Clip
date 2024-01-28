@@ -31,7 +31,7 @@ class ClipDataset(Dataset):
 
 class DisturbClipDataset(ClipDataset):
     def __init__(self, dataframe, preprocess):
-        super(DisturbClipDataset, self).__init__(dataframe, preprocess)
+        super(DisturbClipDataset, self).__init__(dataframe, preprocess, split_train=True)
 
     def __getitem__(self, idx):
         image_path = self.dataframe.iloc[idx, 0]

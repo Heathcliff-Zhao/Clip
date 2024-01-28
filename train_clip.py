@@ -1,11 +1,13 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = str(get_available_gpu())
+
 import clip
 import torch
 from torch.utils.data import DataLoader
 import pandas as pd
-# from sklearn.metrics import accuracy_score, recall_score, precision_score
 from dataset import ClipDataset, DisturbClipDataset
 import wandb
-import os
+import argparse
 
 from utils import accuracy_score, recall_score, precision_score, get_available_gpu
 
@@ -66,7 +68,9 @@ def train(classifier, train_loader, test_loader, criterion, optimizer, device, t
             torch.save(classifier.state_dict(), f'./models/clip_model_{epoch + 1}.pth')
 
 if __name__ == '__main__':
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(get_available_gpu())
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--use_disturb_dataset', action='store_true')
+    args = parser.parse_args()
 
     train_df = pd.read_csv('./data/train.csv')
     test_df = pd.read_csv('./data/fixtest.csv')
@@ -75,7 +79,7 @@ if __name__ == '__main__':
     classifier, preprocess = clip.load("ViT-B/32", device=device)
     classifier = classifier.float()
 
-    train_dataset = ClipDataset(train_df, preprocess, split_train=False)
+    train_dataset = ClipDataset(train_df, preprocess, split_train=False) if not args.use_disturb_dataset else DisturbClipDataset(train_df, preprocess)
     test_dataset = ClipDataset(test_df, preprocess)
 
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
