@@ -106,24 +106,27 @@ def accuracy_score(labels, predictions):
     return correct / len(labels)
 
 def recall_score(labels, predictions):
-    # print(labels)
-    # print(predictions)
-    tp = 0
-    fn = 0
-    for label, prediction in zip(labels, predictions):
-        # print(label, prediction)
-        if label == 1 and prediction == 1:
-            tp += 1
-        elif label == 1 and prediction == 0:
-            fn += 1
-    return tp / (tp + fn)
-
-def precision_score(labels, predictions):
-    tp = 0
-    fp = 0
+    tp, fp, tn, fn = 0, 0, 0, 0
     for label, prediction in zip(labels, predictions):
         if label == 1 and prediction == 1:
             tp += 1
         elif label == 0 and prediction == 1:
             fp += 1
-    return tp / (tp + fp)
+        elif label == 0 and prediction == 0:
+            tn += 1
+        elif label == 1 and prediction == 0:
+            fn += 1
+    return tp / (tp + fn), tn / (tn + fp)
+
+def precision_score(labels, predictions):
+    tp, fp, tn, fn = 0, 0, 0, 0
+    for label, prediction in zip(labels, predictions):
+        if label == 1 and prediction == 1:
+            tp += 1
+        elif label == 0 and prediction == 1:
+            fp += 1
+        elif label == 0 and prediction == 0:
+            tn += 1
+        elif label == 1 and prediction == 0:
+            fn += 1
+    return tp / (tp + fp), tn / (tn + fn)

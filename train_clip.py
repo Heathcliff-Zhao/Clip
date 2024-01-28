@@ -44,29 +44,24 @@ def evaluate_performance(model, data_loader, device, text_inputs):
             labels = labels.to(device)
             outputs = model(images, text_inputs)
             logits = outputs[0].softmax(dim=-1)
-            # print(logits)
             predictions = torch.argmax(logits, dim=-1)
-            # print(predictions)
             all_labels.extend(torch.argmax(labels, dim=-1).cpu().numpy().tolist())
             all_predictions.extend(predictions.cpu().numpy().tolist())
             
-    # print(all_labels[:50])
-    # print(all_predictions[:50])
-    # exit()
     print(all_labels)
     print(all_predictions)
     accuracy = accuracy_score(all_labels, all_predictions)
-    recall = recall_score(all_labels, all_predictions)
-    precision = precision_score(all_labels, all_predictions)
-    print(f'Accuracy: {accuracy}, Recall: {recall}, Precision: {precision}')
-    return accuracy, recall, precision
+    bad_recall, good_recall = recall_score(all_labels, all_predictions)
+    bad_precision, good_precision = precision_score(all_labels, all_predictions)
+    print(f'Accuracy: {accuracy}, Recall@bad: {bad_recall}, Recall@good: {good_recall}, Precision@bad: {bad_precision}, Precision@good: {good_precision}')
+    return accuracy, bad_recall, good_recall, bad_precision, good_precision
 
 def train(classifier, train_loader, test_loader, criterion, optimizer, device, text_inputs):
-    epochs = 100
+    epochs = 60
     for epoch in range(epochs):
         train_loss = train_epoch(classifier, train_loader, criterion, optimizer, device, text_inputs)
-        accuracy, recall, precision = evaluate_performance(classifier, test_loader, device, text_inputs)
-        wandb.log({'epoch_loss': train_loss, 'accuracy': accuracy, 'recall': recall, 'precision': precision})
+        accuracy, bad_recall, good_recall, bad_precision, good_precision = evaluate_performance(classifier, test_loader, device, text_inputs)
+        wandb.log({'train_loss': train_loss, 'accuracy': accuracy, 'bad_recall': bad_recall, 'good_recall': good_recall, 'bad_precision': bad_precision, 'good_precision': good_precision})
         if (epoch + 1) % 20 == 0:
             torch.save(classifier.state_dict(), f'./models/clip_model_{epoch + 1}.pth')
 
@@ -80,7 +75,7 @@ if __name__ == '__main__':
     classifier, preprocess = clip.load("ViT-B/32", device=device)
     classifier = classifier.float()
 
-    train_dataset = ClipDataset(train_df, preprocess, split_train=True)
+    train_dataset = ClipDataset(train_df, preprocess, split_train=False)
     test_dataset = ClipDataset(test_df, preprocess)
 
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
