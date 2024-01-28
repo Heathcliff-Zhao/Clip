@@ -5,16 +5,13 @@ from torch.utils.data import Dataset
 import os
 import random
 
-from utils import prepare_image_with_bbox, get_available_gpu
-
-
-os.environ['CUDA_VISIBLE_DEVICES'] = str(get_available_gpu())
+from utils import prepare_image_with_bbox
 
 
 class ClipDataset(Dataset):
-    def __init__(self, dataframe, preprocess):
+    def __init__(self, dataframe, preprocess, split_train=False):
         super(ClipDataset, self).__init__()
-        self.dataframe = dataframe
+        self.dataframe = dataframe if not split_train else dataframe[dataframe['label'] == 'good']
         self.preprocess = preprocess
 
     def __len__(self):

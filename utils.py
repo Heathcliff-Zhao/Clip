@@ -33,28 +33,38 @@ def get_available_gpu():
     gpu_id = gpu_free_mem.index(max(gpu_free_mem))
     return gpu_id
 
-def disturb_on_bbox(bboxes_info):
-    # drop, move, add
-    which_disturb = random.choice(['drop', 'move', 'add'])
-    if which_disturb == 'drop':
-        drop_ratio = 0.15
-        drop_bool_list = [True if random.random() < drop_ratio else False for _ in range(len(bboxes_info))]
-        # at least one node is dropped
-        if not any(drop_bool_list):
-            drop_bool_list[random.randint(0, len(bboxes_info) - 1)] = True
-        bboxes_info = [node for node, drop_bool in zip(bboxes_info, drop_bool_list) if not drop_bool]
-    elif which_disturb == 'move':
-        move_ratio = 0.15
-        move_bool_list = [True if random.random() < move_ratio else False for _ in range(len(bboxes_info))]
-        # at least one node is moved
-        if not any(move_bool_list):
-            move_bool_list[random.randint(0, len(bboxes_info) - 1)] = True
-        for node, move_bool in zip(bboxes_info, move_bool_list):
-            if move_bool:
-                node['boxInfo']['left'] += random.randint(-10, 10)
-                node['boxInfo']['top'] += random.randint(-10, 10)
+def disturb_on_bbox(bboxes_info, image_size):
+    # move, add
+    which_disturb = random.choice(['move', 'add'])
+    if which_disturb == 'move':
+        for node in bboxes_info:
+            move_step = random.randint(50, 100)
+            direction = random.choice(['up', 'down', 'left', 'right'])
+            if direction == 'up':
+                node['boxInfo']['top'] -= move_step
+            elif direction == 'down':
+                node['boxInfo']['top'] += move_step
+            elif direction == 'left':
+                node['boxInfo']['left'] -= move_step
+            elif direction == 'right':
+                node['boxInfo']['left'] += move_step
+            else:
+                pass
+    elif which_disturb == 'add':
+        # add random box on image, region limited in horizontal: 0.2 ~ 0.8, vertical: 0.1 ~ 0.3
+        columns = random.randint(2, 4)
+        rows = random.randint(5, 10)
+        width = image_size[0] * (0.8 - 0.2 - 0.1) / columns
+        height = image_size[1] * (0.3 - 0.1) / rows
+        for i in range(rows):
+            for j in range(columns):
+                left = int(image_size[0] * 0.2 + image_size[0] * 0.1 / 2 + j * width)
+                top = int(image_size[1] * 0.1 + i * height)
+                bboxes_info.append({'boxInfo': {'left': left, 'top': top, 'width': width, 'height': height}})
     else:
         pass
+    return bboxes_info
+
 
 def white_cover(image, bboxes):
     for node in bboxes:
@@ -82,8 +92,38 @@ def prepare_image_with_bbox(image, page_structure, disturb, width=3):
     if disturb:
         which_disturb = random.choice(['bbox', 'image'])
         if which_disturb == 'bbox':
-            disturb_on_bbox(leaf_node_list)
+            disturb_on_bbox(leaf_node_list, image.size)
         else:
             disturb_on_image(image, leaf_node_list)
     img_with_bbox = draw_bbox(image, leaf_node_list, width=width)
     return img_with_bbox
+
+def accuracy_score(labels, predictions):
+    correct = 0
+    for label, prediction in zip(labels, predictions):
+        if label == prediction:
+            correct += 1
+    return correct / len(labels)
+
+def recall_score(labels, predictions):
+    # print(labels)
+    # print(predictions)
+    tp = 0
+    fn = 0
+    for label, prediction in zip(labels, predictions):
+        # print(label, prediction)
+        if label == 1 and prediction == 1:
+            tp += 1
+        elif label == 1 and prediction == 0:
+            fn += 1
+    return tp / (tp + fn)
+
+def precision_score(labels, predictions):
+    tp = 0
+    fp = 0
+    for label, prediction in zip(labels, predictions):
+        if label == 1 and prediction == 1:
+            tp += 1
+        elif label == 0 and prediction == 1:
+            fp += 1
+    return tp / (tp + fp)

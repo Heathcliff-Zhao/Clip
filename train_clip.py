@@ -5,6 +5,9 @@ import pandas as pd
 # from sklearn.metrics import accuracy_score, recall_score, precision_score
 from dataset import ClipDataset, DisturbClipDataset
 import wandb
+import os
+
+from utils import accuracy_score, recall_score, precision_score, get_available_gpu
 
 wandb.init(project='clip-website-classification')
 
@@ -30,37 +33,6 @@ def train_epoch(model, data_loader, criterion, optimizer, device, text_inputs):
         total_loss += loss.item()
         # exit()
     return total_loss / len(data_loader)
-
-def accuracy_score(labels, predictions):
-    correct = 0
-    for label, prediction in zip(labels, predictions):
-        if label == prediction:
-            correct += 1
-    return correct / len(labels)
-
-def recall_score(labels, predictions):
-    # print(labels)
-    # print(predictions)
-    tp = 0
-    fn = 0
-    for label, prediction in zip(labels, predictions):
-        # print(label, prediction)
-        if label == 1 and prediction == 1:
-            tp += 1
-        elif label == 1 and prediction == 0:
-            fn += 1
-    return tp / (tp + fn)
-
-def precision_score(labels, predictions):
-    tp = 0
-    fp = 0
-    for label, prediction in zip(labels, predictions):
-        if label == 1 and prediction == 1:
-            tp += 1
-        elif label == 0 and prediction == 1:
-            fp += 1
-    return tp / (tp + fp)
-
 
 def evaluate_performance(model, data_loader, device, text_inputs):
     model.eval()
@@ -99,6 +71,8 @@ def train(classifier, train_loader, test_loader, criterion, optimizer, device, t
             torch.save(classifier.state_dict(), f'./models/clip_model_{epoch + 1}.pth')
 
 if __name__ == '__main__':
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(get_available_gpu())
+
     train_df = pd.read_csv('./data/train.csv')
     test_df = pd.read_csv('./data/fixtest.csv')
 
@@ -106,7 +80,7 @@ if __name__ == '__main__':
     classifier, preprocess = clip.load("ViT-B/32", device=device)
     classifier = classifier.float()
 
-    train_dataset = ClipDataset(train_df, preprocess)
+    train_dataset = ClipDataset(train_df, preprocess, split_train=True)
     test_dataset = ClipDataset(test_df, preprocess)
 
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
