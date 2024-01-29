@@ -69,11 +69,16 @@ def disturb_on_bbox(bboxes_info, image_size):
 def white_cover(image, bboxes):
     for node in bboxes:
         node = node['boxInfo']
+        node['left'], node['top'], node['width'], node['height'] = int(node['left']), int(node['top']), int(node['width']), int(node['height'])
         image.paste((255, 255, 255), (node['left'], node['top'], node['left'] + node['width'], node['top'] + node['height']))
     return image
 
 def disturb_on_image(image, bboxes_info):
+    actual_disturb = True
     image_node = [node for node in bboxes_info if node.get('tagName', None) == 'img']
+    if len(image_node) < 2:
+        actual_disturb = False
+        return image, actual_disturb
     # 15% mask
     mask_ratio = 0.15
     mask_bool_list = [True if random.random() < mask_ratio else False for _ in range(len(image_node))]
@@ -84,19 +89,21 @@ def disturb_on_image(image, bboxes_info):
     # white cover on image, when mask_bool_list[i] is True
     image = white_cover(image, selected_image_node)
     # TODO: random drop image node ???? much bolder line required
-    return image
+    return image, actual_disturb
 
 
 def prepare_image_with_bbox(image, page_structure, disturb, width=3):
+    actual_disturb = False
     leaf_node_list = leaf_list(page_structure)
-    if disturb:
+    if disturb and len(leaf_node_list) > 1:
         which_disturb = random.choice(['bbox', 'image'])
         if which_disturb == 'bbox':
-            disturb_on_bbox(leaf_node_list, image.size)
+            leaf_node_list = disturb_on_bbox(leaf_node_list, image.size)
+            actual_disturb = True
         else:
-            disturb_on_image(image, leaf_node_list)
+            image, actual_disturb = disturb_on_image(image, leaf_node_list)
     img_with_bbox = draw_bbox(image, leaf_node_list, width=width)
-    return img_with_bbox
+    return img_with_bbox, actual_disturb
 
 def accuracy_score(labels, predictions):
     correct = 0

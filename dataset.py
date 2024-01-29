@@ -35,15 +35,15 @@ class DisturbClipDataset(ClipDataset):
 
     def __getitem__(self, idx):
         image_path = self.dataframe.iloc[idx, 0]
-        image_path = os.path.join('~/groundingdata/allsuccuess_ori', os.path.basename(image_path))
-        bboxes_json_path = image_path.replace('.jpg', '.json').replace('allsuccuess_ori', 'allsuccuess_gt')
+        image_path = os.path.join('/home/zhaoyue/groundingdata/allsuccess_ori', os.path.basename(image_path))
+        bboxes_json_path = image_path.replace('.png', '.json').replace('allsuccess_ori', 'allsuccess_gt')
         disturb = random.choice([True, False])
-        if disturb:
-            ret_label = torch.tensor([0, 1])
-        else:
-            ret_label = torch.tensor([1, 0])
         image = Image.open(image_path).convert("RGB")
         with open(bboxes_json_path, 'r') as f:
             page_structure = json.load(f)
-        image = prepare_image_with_bbox(image, page_structure, disturb, width=3)
+        image, actual_disturb = prepare_image_with_bbox(image, page_structure, disturb, width=3)
+        if actual_disturb:
+            ret_label = torch.tensor([0, 1])
+        else:
+            ret_label = torch.tensor([1, 0])
         return self.preprocess(image), ret_label
